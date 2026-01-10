@@ -1,7 +1,9 @@
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+@immutable
 class TWColor extends ColorSwatch<int> {
   const TWColor(super.primary, super._swatch);
   Color get shade50 => this[50]!;
