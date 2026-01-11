@@ -26,8 +26,8 @@ class ShadcnTheme extends StatelessWidget {
       child: IconTheme(
         data: data.iconTheme,
         child: DefaultSelectionStyle(
-          cursorColor: Color(0xFFFFFFFF),
-          selectionColor: Color(0xFFFFFFFF),
+          cursorColor: data.colorScheme.foreground,
+          selectionColor: data.colorScheme.secondary,
           child: child,
         ),
       ),
@@ -52,10 +52,10 @@ class _InheritedTheme extends InheritedTheme {
 @immutable
 class ThemeData {
   factory ThemeData({
-    String? fontFamily,
-    Brightness brightness = Brightness.light,
-    BaseColor baseColor = BaseColor.neutral,
     AccentColor accentColor = AccentColor.base,
+    BaseColor baseColor = BaseColor.neutral,
+    Brightness brightness = Brightness.light,
+    String? fontFamily,
   }) {
     final colorScheme = ColorScheme.from(
       brightness: brightness,
@@ -74,6 +74,32 @@ class ThemeData {
       colorScheme: colorScheme,
       iconTheme: iconTheme,
       textTheme: textTheme,
+    );
+  }
+
+  factory ThemeData.light({
+    AccentColor accentColor = AccentColor.base,
+    BaseColor baseColor = BaseColor.neutral,
+    String? fontFamily,
+  }) {
+    return ThemeData(
+      accentColor: accentColor,
+      baseColor: baseColor,
+      brightness: Brightness.light,
+      fontFamily: fontFamily,
+    );
+  }
+
+  factory ThemeData.dark({
+    AccentColor accentColor = AccentColor.base,
+    BaseColor baseColor = BaseColor.neutral,
+    String? fontFamily,
+  }) {
+    return ThemeData(
+      accentColor: accentColor,
+      baseColor: baseColor,
+      brightness: Brightness.dark,
+      fontFamily: fontFamily,
     );
   }
 
