@@ -49,9 +49,10 @@ class _InheritedTheme extends InheritedTheme {
 @immutable
 class ThemeData {
   factory ThemeData({
-    AccentColor accentColor = AccentColor.base,
-    BaseColor baseColor = BaseColor.neutral,
+    Font font = Font.inter,
     Brightness brightness = Brightness.light,
+    BaseColor baseColor = BaseColor.neutral,
+    AccentColor accentColor = AccentColor.base,
   }) {
     final colorScheme = ColorScheme.from(
       brightness: brightness,
@@ -59,7 +60,7 @@ class ThemeData {
       accentColor: accentColor,
     );
 
-    final textTheme = TextTheme.resolve(colorScheme: colorScheme);
+    final textTheme = TextTheme.resolve(font: font, colorScheme: colorScheme);
     final iconTheme = IconThemeData(color: colorScheme.foreground);
 
     return ThemeData.raw(

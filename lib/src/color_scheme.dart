@@ -16,7 +16,15 @@ enum BaseColor {
 enum AccentColor {
   base(null),
   amber(TWColors.amber),
-  blue(TWColors.blue);
+  blue(TWColors.blue),
+  cyan(TWColors.cyan),
+  emerald(TWColors.emerald),
+  fuchsia(TWColors.fuchsia),
+  green(TWColors.green),
+  amber(TWColors.amber),
+  blue(TWColors.blue),
+  cyan(TWColors.cyan),
+  pink(TWColors.pink),
 
   const AccentColor(this.palette);
 

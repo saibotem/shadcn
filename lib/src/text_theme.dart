@@ -2,6 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:shadcn/src/color_scheme.dart';
 
+enum Font {
+  inter('Inter'),
+  notoSans('Noto Sans'),
+  nunitoSans('Nunito Sans'),
+  figtree('Figtree');
+
+  const Font(this.name);
+
+  final String name;
+}
+
 @immutable
 class TextTheme {
   const TextTheme({
@@ -20,7 +31,7 @@ class TextTheme {
     required this.muted,
   });
 
-  factory TextTheme.resolve({required ColorScheme colorScheme}) {
+  factory TextTheme.resolve({required ColorScheme colorScheme, Font font = Font.inter}) {
     return TextTheme(
       h1: TextStyle(
         color: colorScheme.foreground,
@@ -29,7 +40,7 @@ class TextTheme {
         letterSpacing: 36 * -0.025,
         height: 2.5 / 2.25,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       h2: TextStyle(
@@ -39,7 +50,7 @@ class TextTheme {
         letterSpacing: 30 * -0.025,
         height: 2.25 / 1.875,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       h3: TextStyle(
@@ -49,7 +60,7 @@ class TextTheme {
         letterSpacing: 24 * -0.025,
         height: 2 / 1.5,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       h4: TextStyle(
@@ -59,7 +70,7 @@ class TextTheme {
         letterSpacing: 20 * -0.025,
         height: 1.75 / 1.25,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       p: TextStyle(
@@ -67,7 +78,7 @@ class TextTheme {
         fontSize: 16,
         height: 7 * 0.25,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       blockquote: TextStyle(
@@ -75,21 +86,21 @@ class TextTheme {
         fontSize: 16,
         fontStyle: FontStyle.italic,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       table: TextStyle(
         color: colorScheme.foreground,
         fontSize: 16,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       list: TextStyle(
         color: colorScheme.foreground,
         fontSize: 16,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       inlineCode: TextStyle(
@@ -98,7 +109,7 @@ class TextTheme {
         fontWeight: FontWeight.w600,
         height: 1.25 / 0.875,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       lead: TextStyle(
@@ -106,7 +117,7 @@ class TextTheme {
         fontSize: 20,
         height: 1.75 / 1.25,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       large: TextStyle(
@@ -115,7 +126,7 @@ class TextTheme {
         fontWeight: FontWeight.w600,
         height: 1.75 / 1.125,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       small: TextStyle(
@@ -124,7 +135,7 @@ class TextTheme {
         fontWeight: FontWeight.w400,
         height: 1,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
       muted: TextStyle(
@@ -132,7 +143,7 @@ class TextTheme {
         fontSize: 12,
         height: 1.25 / 0.875,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: 'Inter',
+        fontFamily: font.name,
         package: 'shadcn',
       ),
     );
