@@ -1,5 +1,3 @@
-library;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 

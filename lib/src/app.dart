@@ -1,9 +1,6 @@
-library;
-
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-
-import 'theme.dart';
+import 'package:shadcn/src/theme.dart';
 
 enum ThemeMode { system, light, dark }
 
@@ -17,7 +14,6 @@ class ShadcnApp extends StatelessWidget {
     this.onNavigationNotification,
     this.navigatorObservers = const <NavigatorObserver>[],
     this.initialRoute,
-    this.pageRouteBuilder,
     this.home,
     this.routes = const <String, WidgetBuilder>{},
     this.builder,
@@ -86,7 +82,6 @@ class ShadcnApp extends StatelessWidget {
        onUnknownRoute = null,
        navigatorObservers = null,
        initialRoute = null,
-       pageRouteBuilder = null,
        home = null,
        routes = null;
 
@@ -98,7 +93,6 @@ class ShadcnApp extends StatelessWidget {
   onNavigationNotification;
   final List<NavigatorObserver>? navigatorObservers;
   final String? initialRoute;
-  final PageRouteFactory? pageRouteBuilder;
   final Widget? home;
   final Map<String, WidgetBuilder>? routes;
   final TransitionBuilder? builder;
@@ -137,9 +131,9 @@ class ShadcnApp extends StatelessWidget {
   ThemeData _themeBuilder(BuildContext context) {
     ThemeData? themeData;
 
-    final ThemeMode mode = themeMode;
-    final Brightness brightness = MediaQuery.platformBrightnessOf(context);
-    final bool useDarkTheme =
+    final mode = themeMode;
+    final brightness = MediaQuery.platformBrightnessOf(context);
+    final useDarkTheme =
         mode == ThemeMode.dark ||
         (mode == ThemeMode.system && brightness == Brightness.dark);
 
@@ -156,10 +150,9 @@ class ShadcnApp extends StatelessWidget {
   }
 
   Widget _shadcnBuilder(BuildContext context, Widget? child, ThemeData theme) {
-    Widget childWidget = child ?? const SizedBox.shrink();
+    var childWidget = child ?? const SizedBox.shrink();
     if (builder != null) childWidget = builder!(context, child);
-    childWidget = ShadcnTheme(data: theme, child: childWidget);
-    return childWidget;
+    return ShadcnTheme(data: theme, child: childWidget);
   }
 
   Widget _buildWidgetApp(BuildContext context, ThemeData theme) {
@@ -203,7 +196,12 @@ class ShadcnApp extends StatelessWidget {
       onNavigationNotification: onNavigationNotification,
       navigatorObservers: navigatorObservers!,
       initialRoute: initialRoute,
-      pageRouteBuilder: pageRouteBuilder,
+      pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) {
+        return PageRouteBuilder<T>(
+          settings: settings,
+          pageBuilder: (context, _, _) => builder(context),
+        );
+      },
       home: home,
       routes: routes!,
       builder: (context, child) => _shadcnBuilder(context, child, theme),

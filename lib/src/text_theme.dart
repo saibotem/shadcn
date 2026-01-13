@@ -1,9 +1,6 @@
-library;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-
-import 'color_scheme.dart';
+import 'package:shadcn/src/color_scheme.dart';
 
 @immutable
 class TextTheme {
@@ -23,10 +20,7 @@ class TextTheme {
     required this.muted,
   });
 
-  factory TextTheme.resolve({
-    required ColorScheme colorScheme,
-    required String? fontFamily,
-  }) {
+  factory TextTheme.resolve({required ColorScheme colorScheme}) {
     return TextTheme(
       h1: TextStyle(
         color: colorScheme.foreground,
@@ -35,7 +29,8 @@ class TextTheme {
         letterSpacing: 36 * -0.025,
         height: 2.5 / 2.25,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       h2: TextStyle(
         color: colorScheme.foreground,
@@ -44,7 +39,8 @@ class TextTheme {
         letterSpacing: 30 * -0.025,
         height: 2.25 / 1.875,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       h3: TextStyle(
         color: colorScheme.foreground,
@@ -53,7 +49,8 @@ class TextTheme {
         letterSpacing: 24 * -0.025,
         height: 2 / 1.5,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       h4: TextStyle(
         color: colorScheme.foreground,
@@ -62,33 +59,38 @@ class TextTheme {
         letterSpacing: 20 * -0.025,
         height: 1.75 / 1.25,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       p: TextStyle(
         color: colorScheme.foreground,
         fontSize: 16,
         height: 7 * 0.25,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       blockquote: TextStyle(
         color: colorScheme.foreground,
         fontSize: 16,
         fontStyle: FontStyle.italic,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       table: TextStyle(
         color: colorScheme.foreground,
         fontSize: 16,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       list: TextStyle(
         color: colorScheme.foreground,
         fontSize: 16,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       inlineCode: TextStyle(
         color: colorScheme.foreground,
@@ -96,14 +98,16 @@ class TextTheme {
         fontWeight: FontWeight.w600,
         height: 1.25 / 0.875,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       lead: TextStyle(
         color: colorScheme.mutedForeground,
         fontSize: 20,
         height: 1.75 / 1.25,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       large: TextStyle(
         color: colorScheme.foreground,
@@ -111,22 +115,25 @@ class TextTheme {
         fontWeight: FontWeight.w600,
         height: 1.75 / 1.125,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       small: TextStyle(
         color: colorScheme.foreground,
         fontSize: 14,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w400,
         height: 1,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
       muted: TextStyle(
         color: colorScheme.mutedForeground,
-        fontSize: 14,
+        fontSize: 12,
         height: 1.25 / 0.875,
         leadingDistribution: TextLeadingDistribution.even,
-        fontFamily: fontFamily,
+        fontFamily: 'Inter',
+        package: 'shadcn',
       ),
     );
   }

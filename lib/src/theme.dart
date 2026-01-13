@@ -1,14 +1,11 @@
-library;
-
 import 'package:flutter/widgets.dart';
-
-import 'color_scheme.dart';
-import 'text_theme.dart';
+import 'package:shadcn/src/color_scheme.dart';
+import 'package:shadcn/src/text_theme.dart';
 
 const Duration kThemeAnimationDuration = Duration(milliseconds: 200);
 
 class ShadcnTheme extends StatelessWidget {
-  const ShadcnTheme({super.key, required this.data, required this.child});
+  const ShadcnTheme({required this.data, required this.child, super.key});
 
   final ThemeData data;
   final Widget child;
@@ -55,7 +52,6 @@ class ThemeData {
     AccentColor accentColor = AccentColor.base,
     BaseColor baseColor = BaseColor.neutral,
     Brightness brightness = Brightness.light,
-    String? fontFamily,
   }) {
     final colorScheme = ColorScheme.from(
       brightness: brightness,
@@ -63,11 +59,7 @@ class ThemeData {
       accentColor: accentColor,
     );
 
-    final textTheme = TextTheme.resolve(
-      colorScheme: colorScheme,
-      fontFamily: fontFamily,
-    );
-
+    final textTheme = TextTheme.resolve(colorScheme: colorScheme);
     final iconTheme = IconThemeData(color: colorScheme.foreground);
 
     return ThemeData.raw(
@@ -80,26 +72,21 @@ class ThemeData {
   factory ThemeData.light({
     AccentColor accentColor = AccentColor.base,
     BaseColor baseColor = BaseColor.neutral,
-    String? fontFamily,
   }) {
     return ThemeData(
       accentColor: accentColor,
       baseColor: baseColor,
-      brightness: Brightness.light,
-      fontFamily: fontFamily,
     );
   }
 
   factory ThemeData.dark({
     AccentColor accentColor = AccentColor.base,
     BaseColor baseColor = BaseColor.neutral,
-    String? fontFamily,
   }) {
     return ThemeData(
       accentColor: accentColor,
       baseColor: baseColor,
       brightness: Brightness.dark,
-      fontFamily: fontFamily,
     );
   }
 

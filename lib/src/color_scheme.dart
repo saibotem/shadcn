@@ -1,9 +1,6 @@
-library;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-
-import 'colors.dart';
+import 'package:shadcn/src/colors.dart';
 
 enum BaseColor {
   neutral(TWColors.neutral),
