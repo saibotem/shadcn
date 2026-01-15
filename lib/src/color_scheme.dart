@@ -6,7 +6,8 @@ enum BaseColor {
   neutral(TWColors.neutral),
   stone(TWColors.stone),
   zinc(TWColors.zinc),
-  gray(TWColors.gray);
+  gray(TWColors.gray)
+  ;
 
   const BaseColor(this.palette);
 
@@ -21,10 +22,11 @@ enum AccentColor {
   emerald(TWColors.emerald),
   fuchsia(TWColors.fuchsia),
   green(TWColors.green),
-  amber(TWColors.amber),
-  blue(TWColors.blue),
-  cyan(TWColors.cyan),
-  pink(TWColors.pink),
+  indigo(TWColors.indigo),
+  lime(TWColors.lime),
+  orange(TWColors.orange),
+  pink(TWColors.pink)
+  ;
 
   const AccentColor(this.palette);
 

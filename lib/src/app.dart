@@ -131,14 +131,13 @@ class ShadcnApp extends StatelessWidget {
   ThemeData _themeBuilder(BuildContext context) {
     ThemeData? themeData;
 
-    final mode = themeMode;
     final brightness = MediaQuery.platformBrightnessOf(context);
     final useDarkTheme =
-        mode == ThemeMode.dark ||
-        (mode == ThemeMode.system && brightness == Brightness.dark);
+        themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system && brightness == Brightness.dark);
 
-    if (useDarkTheme && darkTheme != null) themeData = darkTheme;
-    themeData ??= theme ?? ThemeData();
+    if (useDarkTheme) themeData = darkTheme ?? ThemeData.dark();
+    themeData ??= theme ?? ThemeData.light();
 
     SystemChrome.setSystemUIOverlayStyle(
       brightness == Brightness.dark
@@ -167,7 +166,7 @@ class ShadcnApp extends StatelessWidget {
         title: title,
         onGenerateTitle: onGenerateTitle,
         onNavigationNotification: onNavigationNotification,
-        textStyle: theme.textTheme.p,
+        textStyle: theme.textTheme.body,
         color: theme.colorScheme.primary,
         locale: locale,
         localizationsDelegates: localizationsDelegates,
@@ -207,7 +206,7 @@ class ShadcnApp extends StatelessWidget {
       builder: (context, child) => _shadcnBuilder(context, child, theme),
       title: title,
       onGenerateTitle: onGenerateTitle,
-      textStyle: theme.textTheme.p,
+      textStyle: theme.textTheme.body,
       color: theme.colorScheme.primary,
       locale: locale,
       localizationsDelegates: localizationsDelegates,

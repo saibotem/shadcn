@@ -49,7 +49,6 @@ class _InheritedTheme extends InheritedTheme {
 @immutable
 class ThemeData {
   factory ThemeData({
-    Font font = Font.inter,
     Brightness brightness = Brightness.light,
     BaseColor baseColor = BaseColor.neutral,
     AccentColor accentColor = AccentColor.base,
@@ -60,34 +59,31 @@ class ThemeData {
       accentColor: accentColor,
     );
 
-    final textTheme = TextTheme.resolve(font: font, colorScheme: colorScheme);
-    final iconTheme = IconThemeData(color: colorScheme.foreground);
-
     return ThemeData.raw(
       colorScheme: colorScheme,
-      iconTheme: iconTheme,
-      textTheme: textTheme,
+      iconTheme: IconThemeData(size:16, color: colorScheme.foreground, opticalSize: 1),
+      textTheme: TextThemeData(color: colorScheme.foreground),
     );
   }
 
   factory ThemeData.light({
-    AccentColor accentColor = AccentColor.base,
     BaseColor baseColor = BaseColor.neutral,
+    AccentColor accentColor = AccentColor.base,
   }) {
     return ThemeData(
-      accentColor: accentColor,
       baseColor: baseColor,
+      accentColor: accentColor,
     );
   }
 
   factory ThemeData.dark({
-    AccentColor accentColor = AccentColor.base,
     BaseColor baseColor = BaseColor.neutral,
+    AccentColor accentColor = AccentColor.base,
   }) {
     return ThemeData(
-      accentColor: accentColor,
-      baseColor: baseColor,
       brightness: Brightness.dark,
+      baseColor: baseColor,
+      accentColor: accentColor,
     );
   }
 
@@ -98,6 +94,12 @@ class ThemeData {
   });
 
   final ColorScheme colorScheme;
-  final TextTheme textTheme;
   final IconThemeData iconTheme;
+  final TextThemeData textTheme;
+}
+
+extension TextStyleExtension on TextStyle {
+  TextStyle withColor(Color? color) {
+    return copyWith(color: color);
+  }
 }

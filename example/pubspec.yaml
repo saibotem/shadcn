@@ -1,0 +1,14 @@
+name: example
+publish_to: "none"
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shadcn:
+
+dependency_overrides:
+  shadcn:
+    path: ../

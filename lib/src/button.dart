@@ -40,6 +40,7 @@ class Button extends StatefulWidget {
     this.iconPrefix,
     this.iconSuffix,
     this.height = 32,
+    this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.primary;
 
@@ -50,6 +51,7 @@ class Button extends StatefulWidget {
     this.iconPrefix,
     this.iconSuffix,
     this.height = 32,
+    this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.secondary;
 
@@ -60,6 +62,7 @@ class Button extends StatefulWidget {
     this.iconPrefix,
     this.iconSuffix,
     this.height = 32,
+    this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.ghost;
 
@@ -70,14 +73,16 @@ class Button extends StatefulWidget {
     this.iconPrefix,
     this.iconSuffix,
     this.height = 32,
+    this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.destructive;
 
-  final Text label;
+  final Widget label;
+  final bool selected;
   final bool disabled;
   final double height;
-  final Icon? iconPrefix;
-  final Icon? iconSuffix;
+  final Widget? iconPrefix;
+  final Widget? iconSuffix;
   final ButtonType buttonType;
   final VoidCallback onPressed;
 
@@ -86,10 +91,17 @@ class Button extends StatefulWidget {
 }
 
 class _ButtonState extends State<Button> {
-  bool _isHovering = false;
+  late bool _isHovering;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _isHovering = widget.selected;
+  }
 
   void _handleHoveringChange(bool isHovering) {
-    if (widget.disabled || _isHovering == isHovering) return;
+    if (widget.selected || widget.disabled || _isHovering == isHovering) return;
     setState(() => _isHovering = isHovering);
   }
 
@@ -125,20 +137,21 @@ class _ButtonState extends State<Button> {
                 size: widget.height / 2,
               ),
               child: Row(
+                spacing: 8,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
+                    spacing: 8,
                     children: [
                       ?widget.iconPrefix,
-                      DefaultTextStyle(
-                        style: theme.textTheme.small.copyWith(
-                          color: foregroundColor,
+                      DefaultTextStyle.merge(
+                        style: theme.textTheme.labelMedium.withColor(
+                          foregroundColor,
                         ),
                         child: widget.label,
                       ),
                     ],
                   ),
-
                   ?widget.iconSuffix,
                 ],
               ),

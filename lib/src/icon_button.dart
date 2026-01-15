@@ -35,7 +35,7 @@ class IconButton extends StatefulWidget {
     this.disabled = false,
   }) : buttonType = ButtonType.destructive;
 
-  final Icon icon;
+  final Widget icon;
   final bool disabled;
   final double dimension;
   final ButtonType buttonType;
@@ -75,13 +75,15 @@ class _IconButtonState extends State<IconButton> {
           child: Container(
             height: widget.dimension,
             width: widget.dimension,
-            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: _isHovering ? hoverColor : containerColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: IconTheme.merge(
-              data: IconThemeData(size: 16, color: foregroundColor),
+              data: IconThemeData(
+                size: widget.dimension / 2,
+                color: foregroundColor,
+              ),
               child: widget.icon,
             ),
           ),

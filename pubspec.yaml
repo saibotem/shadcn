@@ -22,8 +22,6 @@ flutter:
     - family: Inter
       fonts:
         - asset: fonts/InterVariable.ttf
-        - asset: fonts/InterVariable-Italic.ttf
-          style: italic
     # lucide 0.562.0
     - family: lucide
       fonts:
