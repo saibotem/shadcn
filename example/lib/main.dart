@@ -28,7 +28,7 @@ class _NavigatorState extends State<Navigator> {
   @override
   Widget build(BuildContext context) {
     return Sidebar(
-      content: const SizedBox(),
+      content:  Center(child: Text('$selectedIndex'),),
       destinations: const [
         SidebarLabel(label: Text('Getting Started')),
         SidebarButton(label: Text('Installation')),
@@ -47,7 +47,6 @@ class _NavigatorState extends State<Navigator> {
       selectedIndex: selectedIndex,
       onDestinationSelected: (int value) {
         setState(() => selectedIndex = value);
-        print('geht net? $selectedIndex');
       },
     );
   }

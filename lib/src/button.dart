@@ -96,8 +96,15 @@ class _ButtonState extends State<Button> {
   @override
   void initState() {
     super.initState();
-
     _isHovering = widget.selected;
+  }
+
+  @override
+  void didUpdateWidget(covariant Button oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selected != oldWidget.selected) {
+      _isHovering = widget.selected;
+    }
   }
 
   void _handleHoveringChange(bool isHovering) {

@@ -1,10 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shadcn/src/theme.dart';
+import 'package:window_manager/window_manager.dart';
 
 enum ThemeMode { system, light, dark }
 
-class ShadcnApp extends StatelessWidget {
+class ShadcnApp extends StatefulWidget {
   const ShadcnApp({
     super.key,
     this.navigatorKey,
@@ -31,7 +34,7 @@ class ShadcnApp extends StatelessWidget {
     this.showPerformanceOverlay = false,
     this.showSemanticsDebugger = false,
     this.debugShowWidgetInspector = false,
-    this.debugShowCheckedModeBanner = true,
+    this.debugShowCheckedModeBanner = false,
     this.exitWidgetSelectionButtonBuilder,
     this.moveExitWidgetSelectionButtonBuilder,
     this.tapBehaviorButtonBuilder,
@@ -68,7 +71,7 @@ class ShadcnApp extends StatelessWidget {
     this.showPerformanceOverlay = false,
     this.showSemanticsDebugger = false,
     this.debugShowWidgetInspector = false,
-    this.debugShowCheckedModeBanner = true,
+    this.debugShowCheckedModeBanner = false,
     this.exitWidgetSelectionButtonBuilder,
     this.moveExitWidgetSelectionButtonBuilder,
     this.tapBehaviorButtonBuilder,
@@ -126,18 +129,44 @@ class ShadcnApp extends StatelessWidget {
   final RouterConfig<Object>? routerConfig;
   final BackButtonDispatcher? backButtonDispatcher;
 
-  bool get _usesRouter => routerDelegate != null || routerConfig != null;
+  @override
+  State<ShadcnApp> createState() => _ShadcnAppState();
+}
+
+class _ShadcnAppState extends State<ShadcnApp> {
+  late Future<void> _initFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFuture = _initializeWindowManager();
+  }
+
+  Future<void> _initializeWindowManager() async {
+    if (!(Platform.isWindows || Platform.isMacOS || Platform.isLinux)) return;
+    await windowManager.ensureInitialized();
+
+    const windowOptions = WindowOptions(
+      titleBarStyle: TitleBarStyle.hidden,
+      windowButtonVisibility: false,
+    );
+
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {});
+  }
+
+  bool get _usesRouter =>
+      widget.routerDelegate != null || widget.routerConfig != null;
 
   ThemeData _themeBuilder(BuildContext context) {
     ThemeData? themeData;
 
     final brightness = MediaQuery.platformBrightnessOf(context);
     final useDarkTheme =
-        themeMode == ThemeMode.dark ||
-        (themeMode == ThemeMode.system && brightness == Brightness.dark);
+        widget.themeMode == ThemeMode.dark ||
+        (widget.themeMode == ThemeMode.system && brightness == Brightness.dark);
 
-    if (useDarkTheme) themeData = darkTheme ?? ThemeData.dark();
-    themeData ??= theme ?? ThemeData.light();
+    if (useDarkTheme) themeData = widget.darkTheme ?? ThemeData.dark();
+    themeData ??= widget.theme ?? ThemeData.light();
 
     SystemChrome.setSystemUIOverlayStyle(
       brightness == Brightness.dark
@@ -150,80 +179,92 @@ class ShadcnApp extends StatelessWidget {
 
   Widget _shadcnBuilder(BuildContext context, Widget? child, ThemeData theme) {
     var childWidget = child ?? const SizedBox.shrink();
-    if (builder != null) childWidget = builder!(context, child);
-    return ShadcnTheme(data: theme, child: childWidget);
+    if (widget.builder != null) childWidget = widget.builder!(context, child);
+    return ShadcnTheme(
+      data: theme,
+      child: FutureBuilder(
+        future: _initFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const SizedBox.shrink();
+          }
+          return childWidget;
+        },
+      ),
+    );
   }
 
   Widget _buildWidgetApp(BuildContext context, ThemeData theme) {
     if (_usesRouter) {
       return WidgetsApp.router(
-        routeInformationProvider: routeInformationProvider,
-        routeInformationParser: routeInformationParser,
-        routerDelegate: routerDelegate,
-        routerConfig: routerConfig,
-        backButtonDispatcher: backButtonDispatcher,
+        routeInformationProvider: widget.routeInformationProvider,
+        routeInformationParser: widget.routeInformationParser,
+        routerDelegate: widget.routerDelegate,
+        routerConfig: widget.routerConfig,
+        backButtonDispatcher: widget.backButtonDispatcher,
         builder: (context, child) => _shadcnBuilder(context, child, theme),
-        title: title,
-        onGenerateTitle: onGenerateTitle,
-        onNavigationNotification: onNavigationNotification,
+        title: widget.title,
+        onGenerateTitle: widget.onGenerateTitle,
+        onNavigationNotification: widget.onNavigationNotification,
         textStyle: theme.textTheme.body,
         color: theme.colorScheme.primary,
-        locale: locale,
-        localizationsDelegates: localizationsDelegates,
-        localeListResolutionCallback: localeListResolutionCallback,
-        localeResolutionCallback: localeResolutionCallback,
-        supportedLocales: supportedLocales,
-        showPerformanceOverlay: showPerformanceOverlay,
-        showSemanticsDebugger: showSemanticsDebugger,
-        debugShowWidgetInspector: debugShowWidgetInspector,
-        debugShowCheckedModeBanner: debugShowCheckedModeBanner,
-        exitWidgetSelectionButtonBuilder: exitWidgetSelectionButtonBuilder,
+        locale: widget.locale,
+        localizationsDelegates: widget.localizationsDelegates,
+        localeListResolutionCallback: widget.localeListResolutionCallback,
+        localeResolutionCallback: widget.localeResolutionCallback,
+        supportedLocales: widget.supportedLocales,
+        showPerformanceOverlay: widget.showPerformanceOverlay,
+        showSemanticsDebugger: widget.showSemanticsDebugger,
+        debugShowWidgetInspector: widget.debugShowWidgetInspector,
+        debugShowCheckedModeBanner: widget.debugShowCheckedModeBanner,
+        exitWidgetSelectionButtonBuilder:
+            widget.exitWidgetSelectionButtonBuilder,
         moveExitWidgetSelectionButtonBuilder:
-            moveExitWidgetSelectionButtonBuilder,
-        tapBehaviorButtonBuilder: tapBehaviorButtonBuilder,
-        shortcuts: shortcuts,
-        actions: actions,
-        restorationScopeId: restorationScopeId,
+            widget.moveExitWidgetSelectionButtonBuilder,
+        tapBehaviorButtonBuilder: widget.tapBehaviorButtonBuilder,
+        shortcuts: widget.shortcuts,
+        actions: widget.actions,
+        restorationScopeId: widget.restorationScopeId,
       );
     }
 
     return WidgetsApp(
-      navigatorKey: navigatorKey,
-      onGenerateRoute: onGenerateRoute,
-      onGenerateInitialRoutes: onGenerateInitialRoutes,
-      onUnknownRoute: onUnknownRoute,
-      onNavigationNotification: onNavigationNotification,
-      navigatorObservers: navigatorObservers!,
-      initialRoute: initialRoute,
+      navigatorKey: widget.navigatorKey,
+      onGenerateRoute: widget.onGenerateRoute,
+      onGenerateInitialRoutes: widget.onGenerateInitialRoutes,
+      onUnknownRoute: widget.onUnknownRoute,
+      onNavigationNotification: widget.onNavigationNotification,
+      navigatorObservers: widget.navigatorObservers!,
+      initialRoute: widget.initialRoute,
       pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) {
         return PageRouteBuilder<T>(
           settings: settings,
           pageBuilder: (context, _, _) => builder(context),
         );
       },
-      home: home,
-      routes: routes!,
+      home: widget.home,
+      routes: widget.routes!,
       builder: (context, child) => _shadcnBuilder(context, child, theme),
-      title: title,
-      onGenerateTitle: onGenerateTitle,
+      title: widget.title,
+      onGenerateTitle: widget.onGenerateTitle,
       textStyle: theme.textTheme.body,
       color: theme.colorScheme.primary,
-      locale: locale,
-      localizationsDelegates: localizationsDelegates,
-      localeResolutionCallback: localeResolutionCallback,
-      localeListResolutionCallback: localeListResolutionCallback,
-      supportedLocales: supportedLocales,
-      showPerformanceOverlay: showPerformanceOverlay,
-      showSemanticsDebugger: showSemanticsDebugger,
-      debugShowWidgetInspector: debugShowWidgetInspector,
-      debugShowCheckedModeBanner: debugShowCheckedModeBanner,
-      exitWidgetSelectionButtonBuilder: exitWidgetSelectionButtonBuilder,
+      locale: widget.locale,
+      localizationsDelegates: widget.localizationsDelegates,
+      localeResolutionCallback: widget.localeResolutionCallback,
+      localeListResolutionCallback: widget.localeListResolutionCallback,
+      supportedLocales: widget.supportedLocales,
+      showPerformanceOverlay: widget.showPerformanceOverlay,
+      showSemanticsDebugger: widget.showSemanticsDebugger,
+      debugShowWidgetInspector: widget.debugShowWidgetInspector,
+      debugShowCheckedModeBanner: widget.debugShowCheckedModeBanner,
+      exitWidgetSelectionButtonBuilder: widget.exitWidgetSelectionButtonBuilder,
       moveExitWidgetSelectionButtonBuilder:
-          moveExitWidgetSelectionButtonBuilder,
-      tapBehaviorButtonBuilder: tapBehaviorButtonBuilder,
-      shortcuts: shortcuts,
-      actions: actions,
-      restorationScopeId: restorationScopeId,
+          widget.moveExitWidgetSelectionButtonBuilder,
+      tapBehaviorButtonBuilder: widget.tapBehaviorButtonBuilder,
+      shortcuts: widget.shortcuts,
+      actions: widget.actions,
+      restorationScopeId: widget.restorationScopeId,
     );
   }
 

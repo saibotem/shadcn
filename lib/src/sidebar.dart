@@ -1,10 +1,13 @@
-import 'dart:ui';
+import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:shadcn/src/button.dart';
 import 'package:shadcn/src/icon_button.dart';
 import 'package:shadcn/src/lucide_icons.dart';
+import 'package:shadcn/src/separator.dart';
 import 'package:shadcn/src/theme.dart';
+import 'package:window_manager/window_manager.dart';
 
 enum SidebarStyle { normal, insert, floating }
 
@@ -21,11 +24,13 @@ class SidebarButton extends SidebarEntry {
   const SidebarButton({
     required this.label,
     this.icon,
+    this.isDestination = true,
     this.children = const [],
   });
 
   final Widget? icon;
   final Widget label;
+  final bool isDestination;
   final List<SidebarSubButton> children;
 }
 
@@ -35,8 +40,6 @@ class SidebarSubButton {
   final Widget label;
 }
 
-enum _SidebarSlot { content, sidebar, drawer }
-
 class Sidebar extends StatefulWidget {
   const Sidebar({
     required this.content,
@@ -44,6 +47,8 @@ class Sidebar extends StatefulWidget {
     required this.selectedIndex,
     required this.onDestinationSelected,
     super.key,
+    this.appBarTitle,
+    this.appBarActions,
     this.sidebarHeader,
     this.sidebarFooter,
   }) : sidebarStyle = SidebarStyle.normal;
@@ -54,6 +59,8 @@ class Sidebar extends StatefulWidget {
     required this.selectedIndex,
     required this.onDestinationSelected,
     super.key,
+    this.appBarTitle,
+    this.appBarActions,
     this.sidebarHeader,
     this.sidebarFooter,
   }) : sidebarStyle = SidebarStyle.insert;
@@ -64,13 +71,16 @@ class Sidebar extends StatefulWidget {
     required this.selectedIndex,
     required this.onDestinationSelected,
     super.key,
+    this.appBarTitle,
+    this.appBarActions,
     this.sidebarHeader,
     this.sidebarFooter,
   }) : sidebarStyle = SidebarStyle.floating;
 
-  final SidebarStyle sidebarStyle;
+  final Widget? appBarTitle;
+  final List<Widget>? appBarActions;
 
-  final Widget content;
+  final SidebarStyle sidebarStyle;
   final Widget? sidebarHeader;
   final Widget? sidebarFooter;
   final List<SidebarEntry> destinations;
@@ -78,56 +88,106 @@ class Sidebar extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
 
+  final Widget content;
+
   @override
   State<Sidebar> createState() => _SidebarState();
 }
 
 class _SidebarState extends State<Sidebar> {
-  int _index = 0;
+  late Future<void> _initFuture;
+  bool _isExpanded = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFuture = _initializeWindowManager();
+  }
+
+  Future<void> _initializeWindowManager() async {
+    if (!(Platform.isWindows || Platform.isMacOS || Platform.isLinux)) return;
+    await windowManager.ensureInitialized();
+  }
+
+  void _handleExpandingChange() {
+    setState(() => _isExpanded = !_isExpanded);
+  }
 
   Widget _buildSidebar(BuildContext context) {
     final colorScheme = ShadcnTheme.of(context).colorScheme;
 
+    var index = 0;
     final sidebarContent = <Widget>[];
 
     for (final destination in widget.destinations) {
-      sidebarContent.add(_buildDestination(destination));
+      switch (destination) {
+        case SidebarLabel():
+          if (index != 0) sidebarContent.add(const SizedBox(height: 16));
+          sidebarContent.add(_SidebarLabel(label: destination.label));
+        case SidebarButton():
+          final menuButton = _SidebarMenuButton(
+            icon: destination.icon,
+            label: destination.label,
+            isDestination: destination.isDestination,
+            subButtons: destination.children,
+            index: index,
+            selectedIndex: widget.selectedIndex,
+            onDestinationSelected: widget.onDestinationSelected,
+          );
+
+          if (destination.isDestination) index += 1;
+          index += destination.children.length;
+          sidebarContent.add(menuButton);
+      }
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
+    final border = switch (widget.sidebarStyle) {
+      SidebarStyle.normal => Border(
+        right: BorderSide(color: colorScheme.border),
+      ),
+      SidebarStyle.insert => null,
+      SidebarStyle.floating => Border.all(color: colorScheme.border),
+    };
+
+    return AnimatedContainer(
+      width: _isExpanded ? 240 : 0,
+      duration: const Duration(milliseconds: 200),
+      margin: widget.sidebarStyle == SidebarStyle.floating
+          ? const EdgeInsets.all(8)
+          : null,
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: colorScheme.sidebar,
-        border: Border(right: BorderSide(color: colorScheme.border)),
+        borderRadius: widget.sidebarStyle == SidebarStyle.floating
+            ? BorderRadius.circular(16)
+            : null,
+        border: border,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ?widget.sidebarHeader,
-          ...sidebarContent,
-          ?widget.sidebarFooter,
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        child: SizedBox(
+          width: 224,
+          child: Column(
+            spacing: 8,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ?widget.sidebarHeader,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    spacing: 4,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: sidebarContent,
+                  ),
+                ),
+              ),
+              ?widget.sidebarFooter,
+            ],
+          ),
+        ),
       ),
     );
-  }
-
-  Widget _buildDestination(SidebarEntry destination) {
-    switch (destination) {
-      case SidebarLabel():
-        return _SidebarLabel(label: destination.label);
-      case SidebarButton():
-        final menuButton = _SidebarMenuButton(
-          icon: destination.icon,
-          label: destination.label,
-          subButtons: destination.children,
-          index: _index,
-          selectedIndex: widget.selectedIndex,
-          onDestinationSelected: widget.onDestinationSelected,
-        );
-
-        _index += destination.children.length + 1;
-        return menuButton;
-    }
   }
 
   Widget _buildContent(BuildContext context) {
@@ -136,41 +196,66 @@ class _SidebarState extends State<Sidebar> {
     final textTheme = theme.textTheme;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+      margin: widget.sidebarStyle == SidebarStyle.insert
+          ? const EdgeInsets.fromLTRB(0, 8, 8, 8)
+          : null,
       decoration: BoxDecoration(
-        color: colorScheme.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.border),
+        color: widget.sidebarStyle == SidebarStyle.insert
+            ? colorScheme.background
+            : null,
+        borderRadius: widget.sidebarStyle == SidebarStyle.insert
+            ? BorderRadius.circular(16)
+            : null,
       ),
       child: Column(
         children: [
-          Container(
-            height: 64,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: colorScheme.border)),
-            ),
-            child: Row(
-              children: [
-                IconButton.ghost(
-                  icon: const Icon(LucideIcons.panelLeft),
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 1,
-                  color: colorScheme.border,
-                  margin: const EdgeInsets.symmetric(vertical: 22),
-                ),
-                const SizedBox(width: 16),
-                DefaultTextStyle.merge(
-                  style: textTheme.title,
-                  child: const Text('Home'),
-                ),
-              ],
+          GestureDetector(
+            onPanStart: (details) => windowManager.startDragging(),
+            onDoubleTap: () async {
+              if (await windowManager.isMaximized()) {
+                await windowManager.unmaximize();
+              } else {
+                await windowManager.maximize();
+              }
+            },
+            child: Container(
+              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: colorScheme.border)),
+              ),
+              child: Row(
+                spacing: 8,
+                children: [
+                  IconButton.ghost(
+                    icon: const Icon(LucideIcons.panelLeft),
+                    onPressed: _handleExpandingChange,
+                  ),
+                  const VerticalSeparator(),
+                  Expanded(
+                    child: widget.appBarTitle != null
+                        ? Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: DefaultTextStyle.merge(
+                              style: textTheme.title,
+                              child: widget.appBarTitle!,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  if (widget.appBarActions != null) ...widget.appBarActions!,
+                  const VerticalSeparator(),
+                  const _WindowButtons(),
+                ],
+              ),
             ),
           ),
-          Padding(padding: const EdgeInsets.all(16), child: widget.content),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: widget.content,
+            ),
+          ),
         ],
       ),
     );
@@ -180,73 +265,26 @@ class _SidebarState extends State<Sidebar> {
   Widget build(BuildContext context) {
     final colorScheme = ShadcnTheme.of(context).colorScheme;
 
-    final mediaSize = MediaQuery.of(context).size;
-    final isLargeScreen = mediaSize.width >= 700;
-
-    final sidebar = _buildSidebar(context);
-
     return ColoredBox(
-      color: colorScheme.background,
-      child: CustomMultiChildLayout(
-        delegate: _SidebarLayout(),
-        children: [
-          LayoutId(id: _SidebarSlot.content, child: _buildContent(context)),
-          if (isLargeScreen) LayoutId(id: _SidebarSlot.sidebar, child: sidebar),
-          if (!isLargeScreen)
-            LayoutId(
-              id: _SidebarSlot.drawer,
-              child: Stack(
-                children: [
-                  GestureDetector(
-                    onTap: () => print('close Drawer'),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    ),
-                  ),
-                  sidebar,
-                ],
-              ),
-            ),
-        ],
+      color: widget.sidebarStyle == SidebarStyle.insert
+          ? colorScheme.sidebar
+          : colorScheme.background,
+      child: FutureBuilder(
+        future: _initFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const SizedBox.shrink();
+          }
+
+          return Row(
+            children: [
+              _buildSidebar(context),
+              Expanded(child: _buildContent(context)),
+            ],
+          );
+        },
       ),
     );
-  }
-}
-
-class _SidebarLayout extends MultiChildLayoutDelegate {
-  @override
-  void performLayout(Size size) {
-    double offsetX = 0;
-
-    if (hasChild(_SidebarSlot.sidebar)) {
-      final sidebarSize = layoutChild(
-        _SidebarSlot.sidebar,
-        BoxConstraints.tightFor(width: 257, height: size.height),
-      );
-
-      offsetX += sidebarSize.width;
-      positionChild(_SidebarSlot.sidebar, Offset.zero);
-    }
-
-    layoutChild(
-      _SidebarSlot.content,
-      BoxConstraints.tightFor(width: size.width - offsetX, height: size.height),
-    );
-    positionChild(_SidebarSlot.content, Offset(offsetX, 0));
-
-    if (hasChild(_SidebarSlot.drawer)) {
-      layoutChild(
-        _SidebarSlot.drawer,
-        BoxConstraints.tightFor(width: size.width, height: size.height),
-      );
-
-      positionChild(_SidebarSlot.drawer, Offset.zero);
-    }
-  }
-
-  @override
-  bool shouldRelayout(covariant MultiChildLayoutDelegate oldDelegate) {
-    return false;
   }
 }
 
@@ -273,16 +311,18 @@ class _SidebarLabel extends StatelessWidget {
 
 class _SidebarMenuButton extends StatefulWidget {
   const _SidebarMenuButton({
+    required this.icon,
     required this.label,
+    required this.isDestination,
     required this.subButtons,
     required this.index,
     required this.selectedIndex,
     required this.onDestinationSelected,
-    this.icon,
   });
 
   final Widget? icon;
   final Widget label;
+  final bool isDestination;
 
   final List<SidebarSubButton> subButtons;
 
@@ -295,58 +335,68 @@ class _SidebarMenuButton extends StatefulWidget {
 }
 
 class _SidebarMenuButtonState extends State<_SidebarMenuButton> {
-  late final bool _isSelected;
   bool _isExpanded = false;
 
-  late int _subIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _isSelected = widget.index == widget.selectedIndex;
-    _subIndex = widget.index + 1;
-  }
-
-  void _handleExpandingChange() {
-    setState(() => _isExpanded = !_isExpanded);
+  void _handleExpandingChange([bool? expand]) {
+    setState(() => _isExpanded = expand ?? !_isExpanded);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadcnTheme.of(context);
-    final subButtons = <Widget>[];
 
-    if (widget.subButtons.isNotEmpty) {
+    final isSelected =
+        widget.index == widget.selectedIndex && widget.isDestination;
+
+    final subButtons = <Widget>[];
+    if (widget.subButtons.isNotEmpty && _isExpanded) {
+      var subIndex = widget.index;
+      if (widget.isDestination) subIndex += 1;
+
       for (final subButton in widget.subButtons) {
         subButtons.add(
           _SidebarSubButton(
             label: subButton.label,
-            index: _subIndex,
-            selected: _subIndex == widget.selectedIndex,
+            index: subIndex,
+            selected: subIndex == widget.selectedIndex,
             onDestinationSelected: widget.onDestinationSelected,
           ),
         );
-        _subIndex += 1;
+        subIndex += 1;
       }
     }
 
     return Column(
-      spacing: 1,
       children: [
         Stack(
           alignment: Alignment.centerRight,
           children: [
             Button.ghost(
-              onPressed: () => widget.onDestinationSelected(widget.index),
+              selected: isSelected,
+              onPressed: () {
+                if (widget.isDestination) {
+                  widget.onDestinationSelected(widget.index);
+                  _handleExpandingChange(true);
+                } else {
+                  _handleExpandingChange();
+                }
+              },
               iconPrefix: widget.icon,
               label: DefaultTextStyle.merge(
-                style: !_isSelected
+                style: !isSelected
                     ? theme.textTheme.body.withColor(null)
                     : null,
                 child: widget.label,
               ),
+              iconSuffix: widget.isDestination
+                  ? null
+                  : Icon(
+                      _isExpanded
+                          ? LucideIcons.chevronDown
+                          : LucideIcons.chevronRight,
+                    ),
             ),
-            if (widget.subButtons.isNotEmpty)
+            if (widget.subButtons.isNotEmpty && widget.isDestination)
               Padding(
                 padding: const EdgeInsets.all(4),
                 child: IconButton.ghost(
@@ -367,10 +417,15 @@ class _SidebarMenuButtonState extends State<_SidebarMenuButton> {
               Container(
                 width: 1,
                 margin: const EdgeInsets.only(left: 16, right: 8),
-                height: widget.subButtons.length * 28,
+                height: widget.subButtons.length * 32,
                 color: theme.colorScheme.border,
               ),
-              Expanded(child: Column(children: subButtons)),
+              Expanded(
+                child: Column(
+                  spacing: 4,
+                  children: [const SizedBox.shrink(), ...subButtons],
+                ),
+              ),
               const SizedBox(width: 28),
             ],
           ),
@@ -401,10 +456,85 @@ class _SidebarSubButton extends StatelessWidget {
       selected: selected,
       height: 28,
       label: DefaultTextStyle.merge(
-        style: selected ? textTheme.body.withColor(null) : null,
+        style: !selected ? textTheme.body.withColor(null) : null,
         child: label,
       ),
       onPressed: () => onDestinationSelected(index),
+    );
+  }
+}
+
+class _WindowButtons extends StatefulWidget {
+  const _WindowButtons();
+
+  @override
+  State<_WindowButtons> createState() => _MaximizeWindowButtonState();
+}
+
+class _MaximizeWindowButtonState extends State<_WindowButtons>
+    with WindowListener {
+  bool _isMaximized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+    unawaited(_init());
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
+  Future<void> _init() async {
+    final isMaximized = await windowManager.isMaximized();
+    setState(() {
+      _isMaximized = isMaximized;
+    });
+  }
+
+  @override
+  void onWindowMaximize() {
+    setState(() {
+      _isMaximized = true;
+    });
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    setState(() {
+      _isMaximized = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      spacing: 2,
+      children: [
+        IconButton.ghost(
+          icon: const Icon(LucideIcons.minus),
+          onPressed: windowManager.minimize,
+        ),
+        IconButton.ghost(
+          icon: Icon(
+            _isMaximized ? LucideIcons.copy : LucideIcons.square,
+          ),
+          onPressed: () async {
+            if (_isMaximized) {
+              await windowManager.unmaximize();
+            } else {
+              await windowManager.maximize();
+            }
+          },
+        ),
+        IconButton.ghost(
+          icon: const Icon(LucideIcons.x),
+          onPressed: windowManager.close,
+        ),
+      ],
     );
   }
 }
