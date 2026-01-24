@@ -8,6 +8,7 @@ class IconButton extends StatefulWidget {
     required this.onPressed,
     super.key,
     this.dimension = 32,
+    this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.primary;
 
@@ -16,6 +17,7 @@ class IconButton extends StatefulWidget {
     required this.onPressed,
     super.key,
     this.dimension = 32,
+    this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.secondary;
 
@@ -24,6 +26,7 @@ class IconButton extends StatefulWidget {
     required this.onPressed,
     super.key,
     this.dimension = 32,
+    this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.ghost;
 
@@ -32,10 +35,12 @@ class IconButton extends StatefulWidget {
     required this.onPressed,
     super.key,
     this.dimension = 32,
+    this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.destructive;
 
   final Widget icon;
+  final bool selected;
   final bool disabled;
   final double dimension;
   final ButtonType buttonType;
@@ -48,8 +53,22 @@ class IconButton extends StatefulWidget {
 class _IconButtonState extends State<IconButton> {
   bool _isHovering = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _isHovering = widget.selected;
+  }
+
+  @override
+  void didUpdateWidget(covariant IconButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selected != oldWidget.selected) {
+      _isHovering = widget.selected;
+    }
+  }
+
   void _handleHoveringChange(bool isHovering) {
-    if (widget.disabled || _isHovering == isHovering) return;
+    if (widget.selected || widget.disabled || _isHovering == isHovering) return;
     setState(() => _isHovering = isHovering);
   }
 
@@ -77,7 +96,7 @@ class _IconButtonState extends State<IconButton> {
             width: widget.dimension,
             decoration: BoxDecoration(
               color: _isHovering ? hoverColor : containerColor,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(widget.dimension / 4),
             ),
             child: IconTheme.merge(
               data: IconThemeData(

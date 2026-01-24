@@ -151,10 +151,12 @@ class _ButtonState extends State<Button> {
                     spacing: 8,
                     children: [
                       ?widget.iconPrefix,
-                      DefaultTextStyle.merge(
-                        style: theme.textTheme.labelMedium.withColor(
-                          foregroundColor,
-                        ),
+                      DefaultTextStyle(
+                        style: theme.textTheme.labelMedium
+                            .withColor(
+                              foregroundColor,
+                            )
+                            .merge(DefaultTextStyle.of(context).style),
                         child: widget.label,
                       ),
                     ],

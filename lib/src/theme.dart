@@ -50,39 +50,43 @@ class _InheritedTheme extends InheritedTheme {
 class ThemeData {
   factory ThemeData({
     Brightness brightness = Brightness.light,
-    BaseColor baseColor = BaseColor.neutral,
+    BaseTone baseTone = BaseTone.neutral,
     AccentColor accentColor = AccentColor.base,
   }) {
     final colorScheme = ColorScheme.from(
       brightness: brightness,
-      baseColor: baseColor,
+      baseTone: baseTone,
       accentColor: accentColor,
     );
 
     return ThemeData.raw(
       colorScheme: colorScheme,
-      iconTheme: IconThemeData(size:16, color: colorScheme.foreground, opticalSize: 1),
+      iconTheme: IconThemeData(
+        size: 16,
+        color: colorScheme.foreground,
+        opticalSize: 1,
+      ),
       textTheme: TextThemeData(color: colorScheme.foreground),
     );
   }
 
   factory ThemeData.light({
-    BaseColor baseColor = BaseColor.neutral,
+    BaseTone baseTone = BaseTone.neutral,
     AccentColor accentColor = AccentColor.base,
   }) {
     return ThemeData(
-      baseColor: baseColor,
+      baseTone: baseTone,
       accentColor: accentColor,
     );
   }
 
   factory ThemeData.dark({
-    BaseColor baseColor = BaseColor.neutral,
+    BaseTone baseTone = BaseTone.neutral,
     AccentColor accentColor = AccentColor.base,
   }) {
     return ThemeData(
       brightness: Brightness.dark,
-      baseColor: baseColor,
+      baseTone: baseTone,
       accentColor: accentColor,
     );
   }

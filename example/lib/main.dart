@@ -37,7 +37,7 @@ class _NavigatorState extends State<Navigator> {
         SidebarButton(
           icon: Icon(LucideIcons.squareTerminal),
           label: Text('Playground'),
-          children: [
+          subButtons: [
             SidebarSubButton(label: Text('History')),
             SidebarSubButton(label: Text('Starred')),
             SidebarSubButton(label: Text('Settings')),

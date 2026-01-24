@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 import 'package:shadcn/src/button.dart';
@@ -25,13 +26,13 @@ class SidebarButton extends SidebarEntry {
     required this.label,
     this.icon,
     this.isDestination = true,
-    this.children = const [],
+    this.subButtons = const [],
   });
 
   final Widget? icon;
   final Widget label;
   final bool isDestination;
-  final List<SidebarSubButton> children;
+  final List<SidebarSubButton> subButtons;
 }
 
 class SidebarSubButton {
@@ -95,22 +96,42 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  late Future<void> _initFuture;
   bool _isExpanded = true;
+  bool _isLargeScreen = true;
+  bool _isWindowManagerInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initFuture = _initializeWindowManager();
+    unawaited(_initializeWindowManager());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final isLargeScreen = MediaQuery.of(context).size.width >= 800;
+    if (isLargeScreen != _isLargeScreen) {
+      setState(() {
+        _isLargeScreen = isLargeScreen;
+        _isExpanded = isLargeScreen;
+      });
+    }
   }
 
   Future<void> _initializeWindowManager() async {
     if (!(Platform.isWindows || Platform.isMacOS || Platform.isLinux)) return;
     await windowManager.ensureInitialized();
+    _isWindowManagerInitialized = true;
   }
 
   void _handleExpandingChange() {
     setState(() => _isExpanded = !_isExpanded);
+  }
+
+  void _onDestinationSelected(int value) {
+    if (!_isLargeScreen) _handleExpandingChange();
+    widget.onDestinationSelected(value);
   }
 
   Widget _buildSidebar(BuildContext context) {
@@ -125,18 +146,35 @@ class _SidebarState extends State<Sidebar> {
           if (index != 0) sidebarContent.add(const SizedBox(height: 16));
           sidebarContent.add(_SidebarLabel(label: destination.label));
         case SidebarButton():
+          final subButtons = <_SidebarSubButton>[];
+
+          if (destination.subButtons.isNotEmpty) {
+            var subIndex = index + (destination.isDestination ? 1 : 0);
+            for (final subButton in destination.subButtons) {
+              subButtons.add(
+                _SidebarSubButton(
+                  label: subButton.label,
+                  index: subIndex,
+                  selected: subIndex == widget.selectedIndex,
+                  onDestinationSelected: _onDestinationSelected,
+                ),
+              );
+              subIndex += 1;
+            }
+          }
+
           final menuButton = _SidebarMenuButton(
             icon: destination.icon,
             label: destination.label,
             isDestination: destination.isDestination,
-            subButtons: destination.children,
+            subButtons: subButtons,
             index: index,
             selectedIndex: widget.selectedIndex,
-            onDestinationSelected: widget.onDestinationSelected,
+            onDestinationSelected: _onDestinationSelected,
           );
 
           if (destination.isDestination) index += 1;
-          index += destination.children.length;
+          index += destination.subButtons.length;
           sidebarContent.add(menuButton);
       }
     }
@@ -155,7 +193,6 @@ class _SidebarState extends State<Sidebar> {
       margin: widget.sidebarStyle == SidebarStyle.floating
           ? const EdgeInsets.all(8)
           : null,
-      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: colorScheme.sidebar,
         borderRadius: widget.sidebarStyle == SidebarStyle.floating
@@ -163,11 +200,12 @@ class _SidebarState extends State<Sidebar> {
             : null,
         border: border,
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        child: SizedBox(
-          width: 224,
+      child: OverflowBox(
+        minWidth: 238,
+        maxWidth: 238,
+        alignment: Alignment.centerRight,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
           child: Column(
             spacing: 8,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,8 +248,12 @@ class _SidebarState extends State<Sidebar> {
       child: Column(
         children: [
           GestureDetector(
-            onPanStart: (details) => windowManager.startDragging(),
+            onPanStart: (details) async {
+              if (!_isWindowManagerInitialized) return;
+              await windowManager.startDragging();
+            },
             onDoubleTap: () async {
+              if (!_isWindowManagerInitialized) return;
               if (await windowManager.isMaximized()) {
                 await windowManager.unmaximize();
               } else {
@@ -250,12 +292,7 @@ class _SidebarState extends State<Sidebar> {
               ),
             ),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: widget.content,
-            ),
-          ),
+          Expanded(child: widget.content),
         ],
       ),
     );
@@ -265,25 +302,47 @@ class _SidebarState extends State<Sidebar> {
   Widget build(BuildContext context) {
     final colorScheme = ShadcnTheme.of(context).colorScheme;
 
-    return ColoredBox(
-      color: widget.sidebarStyle == SidebarStyle.insert
-          ? colorScheme.sidebar
-          : colorScheme.background,
-      child: FutureBuilder(
-        future: _initFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const SizedBox.shrink();
-          }
-
-          return Row(
+    final child = _isLargeScreen
+        ? Row(
             children: [
               _buildSidebar(context),
               Expanded(child: _buildContent(context)),
             ],
+          )
+        : Stack(
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: _isExpanded,
+                  child: _buildContent(context),
+                ),
+              ),
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: !_isExpanded,
+                  child: GestureDetector(
+                    onTap: _handleExpandingChange,
+                    behavior: HitTestBehavior.translucent,
+                    child: AnimatedOpacity(
+                      opacity: _isExpanded ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                        child: const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              _buildSidebar(context),
+            ],
           );
-        },
-      ),
+
+    return ColoredBox(
+      color: widget.sidebarStyle == SidebarStyle.insert
+          ? colorScheme.sidebar
+          : colorScheme.background,
+      child: child,
     );
   }
 }
@@ -324,7 +383,7 @@ class _SidebarMenuButton extends StatefulWidget {
   final Widget label;
   final bool isDestination;
 
-  final List<SidebarSubButton> subButtons;
+  final List<_SidebarSubButton> subButtons;
 
   final int index;
   final int selectedIndex;
@@ -347,24 +406,6 @@ class _SidebarMenuButtonState extends State<_SidebarMenuButton> {
 
     final isSelected =
         widget.index == widget.selectedIndex && widget.isDestination;
-
-    final subButtons = <Widget>[];
-    if (widget.subButtons.isNotEmpty && _isExpanded) {
-      var subIndex = widget.index;
-      if (widget.isDestination) subIndex += 1;
-
-      for (final subButton in widget.subButtons) {
-        subButtons.add(
-          _SidebarSubButton(
-            label: subButton.label,
-            index: subIndex,
-            selected: subIndex == widget.selectedIndex,
-            onDestinationSelected: widget.onDestinationSelected,
-          ),
-        );
-        subIndex += 1;
-      }
-    }
 
     return Column(
       children: [
@@ -423,7 +464,7 @@ class _SidebarMenuButtonState extends State<_SidebarMenuButton> {
               Expanded(
                 child: Column(
                   spacing: 4,
-                  children: [const SizedBox.shrink(), ...subButtons],
+                  children: [const SizedBox.shrink(), ...widget.subButtons],
                 ),
               ),
               const SizedBox(width: 28),
@@ -519,9 +560,7 @@ class _MaximizeWindowButtonState extends State<_WindowButtons>
           onPressed: windowManager.minimize,
         ),
         IconButton.ghost(
-          icon: Icon(
-            _isMaximized ? LucideIcons.copy : LucideIcons.square,
-          ),
+          icon: Icon(_isMaximized ? LucideIcons.copy : LucideIcons.square),
           onPressed: () async {
             if (_isMaximized) {
               await windowManager.unmaximize();

@@ -2,14 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:shadcn/src/colors.dart';
 
-enum BaseColor {
+enum BaseTone {
   neutral(TWColors.neutral),
   stone(TWColors.stone),
   zinc(TWColors.zinc),
-  gray(TWColors.gray)
-  ;
+  gray(TWColors.gray);
 
-  const BaseColor(this.palette);
+  const BaseTone(this.palette);
 
   final TWColor palette;
 }
@@ -25,8 +24,7 @@ enum AccentColor {
   indigo(TWColors.indigo),
   lime(TWColors.lime),
   orange(TWColors.orange),
-  pink(TWColors.pink)
-  ;
+  pink(TWColors.pink);
 
   const AccentColor(this.palette);
 
@@ -71,11 +69,11 @@ class ColorScheme {
 
   factory ColorScheme.from({
     required Brightness brightness,
-    required BaseColor baseColor,
+    required BaseTone baseTone,
     required AccentColor accentColor,
   }) {
     final colorScheme = ColorScheme._palette(
-      baseColor.palette,
+      baseTone.palette,
       brightness == Brightness.dark,
     );
 
