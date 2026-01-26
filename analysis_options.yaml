@@ -5,5 +5,7 @@ linter:
     public_member_api_docs: false
 
 analyzer:
+  errors:
+    discarded_futures: ignore
   exclude:
     - lib/src/lucide_icons.dart

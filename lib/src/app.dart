@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:shadcn/src/scrollbar.dart';
 import 'package:shadcn/src/theme.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -271,6 +272,35 @@ class _ShadcnAppState extends State<ShadcnApp> {
   @override
   Widget build(BuildContext context) {
     final theme = _themeBuilder(context);
-    return _buildWidgetApp(context, theme);
+    return ScrollConfiguration(
+      behavior: widget.scrollBehavior ?? const ShadcnScrollBehavior(),
+      child: _buildWidgetApp(context, theme),
+    );
+  }
+}
+
+class ShadcnScrollBehavior extends ScrollBehavior {
+  const ShadcnScrollBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    switch (details.direction) {
+      case AxisDirection.up:
+      case AxisDirection.down:
+        return Scrollbar.vertical(
+          controller: details.controller,
+          child: child,
+        );
+      case AxisDirection.right:
+      case AxisDirection.left:
+        return Scrollbar.horizontal(
+          controller: details.controller,
+          child: child,
+        );
+    }
   }
 }

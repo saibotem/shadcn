@@ -5,12 +5,16 @@ class Card extends StatelessWidget {
   const Card({
     required this.child,
     super.key,
+    this.margin,
     this.padding = const EdgeInsets.all(24),
+    this.constraints,
     this.borderRadius = 12,
   });
 
   final Widget child;
   final EdgeInsets padding;
+  final EdgeInsets? margin;
+  final BoxConstraints? constraints;
   final double borderRadius;
 
   @override
@@ -19,8 +23,10 @@ class Card extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      clipBehavior: Clip.antiAlias,
+      margin: margin,
       padding: padding,
+      constraints: constraints,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: colorScheme.card,
         borderRadius: BorderRadius.circular(borderRadius),

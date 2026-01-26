@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  intl: ^0.20.2
+  two_dimensional_scrollables: ^0.3.8
   window_manager: ^0.5.1
 
 dev_dependencies:

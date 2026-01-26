@@ -55,6 +55,16 @@ class TextThemeData {
         fontFamily: 'Inter',
         package: 'shadcn',
       ),
+      bodySmall: TextStyle(
+        color: color,
+        fontSize: 13,
+        textBaseline: TextBaseline.alphabetic,
+        height: 18 / 13,
+        leadingDistribution: TextLeadingDistribution.even,
+        fontVariations: const [FontVariation('wght', 300)],
+        fontFamily: 'Inter',
+        package: 'shadcn',
+      ),
     );
   }
 
@@ -64,6 +74,7 @@ class TextThemeData {
     required this.labelMedium,
     required this.labelSmall,
     required this.body,
+    required this.bodySmall,
   });
 
   final TextStyle titleLarge;
@@ -71,4 +82,5 @@ class TextThemeData {
   final TextStyle labelMedium;
   final TextStyle labelSmall;
   final TextStyle body;
+  final TextStyle bodySmall;
 }

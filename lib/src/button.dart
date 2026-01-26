@@ -153,9 +153,7 @@ class _ButtonState extends State<Button> {
                       ?widget.iconPrefix,
                       DefaultTextStyle(
                         style: theme.textTheme.labelMedium
-                            .withColor(
-                              foregroundColor,
-                            )
+                            .withColor(foregroundColor)
                             .merge(DefaultTextStyle.of(context).style),
                         child: widget.label,
                       ),

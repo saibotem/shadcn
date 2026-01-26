@@ -13,7 +13,7 @@ class AlertDialog extends StatelessWidget {
 
   final Icon? icon;
   final Text title;
-  final Text subtitle;
+  final Widget subtitle;
   final Widget? content;
 
   @override
@@ -23,17 +23,17 @@ class AlertDialog extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     return Card(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 600),
-        child: Column(
-          spacing: 24,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              spacing: 24,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (icon != null) Container(
+      constraints: const BoxConstraints(maxWidth: 600),
+      child: Column(
+        spacing: 24,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            spacing: 24,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (icon != null)
+                Container(
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
@@ -45,24 +45,23 @@ class AlertDialog extends StatelessWidget {
                     child: icon!,
                   ),
                 ),
-                Column(
-                  spacing: 4,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DefaultTextStyle(style: textTheme.titleLarge, child: title),
-                    DefaultTextStyle(
-                      style: textTheme.body.withColor(
-                        colorScheme.mutedForeground,
-                      ),
-                      child: subtitle,
+              Column(
+                spacing: 4,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DefaultTextStyle(style: textTheme.titleLarge, child: title),
+                  DefaultTextStyle(
+                    style: textTheme.body.withColor(
+                      colorScheme.mutedForeground,
                     ),
-                  ],
-                ),
-              ],
-            ),
-            ?content,
-          ],
-        ),
+                    child: subtitle,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          ?content,
+        ],
       ),
     );
   }

@@ -105,7 +105,7 @@ class ColorScheme {
           ? TWColors.white.withValues(alpha: 0.1)
           : palette.shade200,
       input = isDark
-          ? TWColors.white.withValues(alpha: 0.15)
+          ? TWColors.white.withValues(alpha: 0.05)
           : palette.shade400,
       ring = isDark ? palette.shade500 : palette.shade950,
       chart1 = isDark ? TWColors.blue.shade700 : TWColors.orange.shade600,

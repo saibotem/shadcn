@@ -1,14 +1,13 @@
-import 'dart:async';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 import 'package:shadcn/src/button.dart';
 import 'package:shadcn/src/icon_button.dart';
 import 'package:shadcn/src/lucide_icons.dart';
+import 'package:shadcn/src/scrollbar.dart';
 import 'package:shadcn/src/separator.dart';
 import 'package:shadcn/src/theme.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:shadcn/src/window_bar.dart';
 
 enum SidebarStyle { normal, insert, floating }
 
@@ -96,15 +95,10 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
+  final controller = ScrollController();
+
   bool _isExpanded = true;
   bool _isLargeScreen = true;
-  bool _isWindowManagerInitialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_initializeWindowManager());
-  }
 
   @override
   void didChangeDependencies() {
@@ -117,12 +111,6 @@ class _SidebarState extends State<Sidebar> {
         _isExpanded = isLargeScreen;
       });
     }
-  }
-
-  Future<void> _initializeWindowManager() async {
-    if (!(Platform.isWindows || Platform.isMacOS || Platform.isLinux)) return;
-    await windowManager.ensureInitialized();
-    _isWindowManagerInitialized = true;
   }
 
   void _handleExpandingChange() {
@@ -205,22 +193,41 @@ class _SidebarState extends State<Sidebar> {
         maxWidth: 238,
         alignment: Alignment.centerRight,
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             spacing: 8,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ?widget.sidebarHeader,
+              if (widget.sidebarHeader != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: widget.sidebarHeader,
+                ),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    spacing: 4,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: sidebarContent,
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(
+                    context,
+                  ).copyWith(scrollbars: false),
+                  child: Scrollbar.vertical(
+                    controller: controller,
+                    padding: const EdgeInsets.only(right: 6),
+                    child: SingleChildScrollView(
+                      controller: controller,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Column(
+                        spacing: 4,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: sidebarContent,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              ?widget.sidebarFooter,
+              if (widget.sidebarFooter != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: widget.sidebarFooter,
+                ),
             ],
           ),
         ),
@@ -247,49 +254,35 @@ class _SidebarState extends State<Sidebar> {
       ),
       child: Column(
         children: [
-          GestureDetector(
-            onPanStart: (details) async {
-              if (!_isWindowManagerInitialized) return;
-              await windowManager.startDragging();
-            },
-            onDoubleTap: () async {
-              if (!_isWindowManagerInitialized) return;
-              if (await windowManager.isMaximized()) {
-                await windowManager.unmaximize();
-              } else {
-                await windowManager.maximize();
-              }
-            },
-            child: Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: colorScheme.border)),
-              ),
-              child: Row(
-                spacing: 8,
-                children: [
-                  IconButton.ghost(
-                    icon: const Icon(LucideIcons.panelLeft),
-                    onPressed: _handleExpandingChange,
-                  ),
-                  const VerticalSeparator(),
-                  Expanded(
-                    child: widget.appBarTitle != null
-                        ? Padding(
-                            padding: const EdgeInsets.only(left: 4),
-                            child: DefaultTextStyle.merge(
-                              style: textTheme.title,
-                              child: widget.appBarTitle!,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  if (widget.appBarActions != null) ...widget.appBarActions!,
-                  const VerticalSeparator(),
-                  const _WindowButtons(),
-                ],
-              ),
+          WindowBar(
+            prefixWidget: Row(
+              spacing: 8,
+              children: [
+                IconButton.ghost(
+                  icon: const Icon(LucideIcons.panelLeft),
+                  onPressed: _handleExpandingChange,
+                ),
+                const Separator.vertical(indent: 12),
+                Expanded(
+                  child: widget.appBarTitle != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: DefaultTextStyle.merge(
+                            style: textTheme.title,
+                            child: widget.appBarTitle!,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+            surfixWidget: Row(
+              spacing: 8,
+              children: [
+                if (widget.appBarActions != null) ...widget.appBarActions!,
+                if (widget.appBarActions != null)
+                  const Separator.vertical(indent: 12),
+              ],
             ),
           ),
           Expanded(child: widget.content),
@@ -501,79 +494,6 @@ class _SidebarSubButton extends StatelessWidget {
         child: label,
       ),
       onPressed: () => onDestinationSelected(index),
-    );
-  }
-}
-
-class _WindowButtons extends StatefulWidget {
-  const _WindowButtons();
-
-  @override
-  State<_WindowButtons> createState() => _MaximizeWindowButtonState();
-}
-
-class _MaximizeWindowButtonState extends State<_WindowButtons>
-    with WindowListener {
-  bool _isMaximized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    windowManager.addListener(this);
-    unawaited(_init());
-  }
-
-  @override
-  void dispose() {
-    windowManager.removeListener(this);
-    super.dispose();
-  }
-
-  Future<void> _init() async {
-    final isMaximized = await windowManager.isMaximized();
-    setState(() {
-      _isMaximized = isMaximized;
-    });
-  }
-
-  @override
-  void onWindowMaximize() {
-    setState(() {
-      _isMaximized = true;
-    });
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    setState(() {
-      _isMaximized = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      spacing: 2,
-      children: [
-        IconButton.ghost(
-          icon: const Icon(LucideIcons.minus),
-          onPressed: windowManager.minimize,
-        ),
-        IconButton.ghost(
-          icon: Icon(_isMaximized ? LucideIcons.copy : LucideIcons.square),
-          onPressed: () async {
-            if (_isMaximized) {
-              await windowManager.unmaximize();
-            } else {
-              await windowManager.maximize();
-            }
-          },
-        ),
-        IconButton.ghost(
-          icon: const Icon(LucideIcons.x),
-          onPressed: windowManager.close,
-        ),
-      ],
     );
   }
 }
