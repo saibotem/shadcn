@@ -92,7 +92,7 @@ class _InputState extends State<Input> {
               alignment: AlignmentDirectional.center,
               children: [
                 AnimatedContainer(
-                  height: 21.0 * widget.maxLines + 19,
+                  height: 21.0 * widget.maxLines + 17,
                   duration: const Duration(milliseconds: 100),
                   decoration: BoxDecoration(
                     border: Border.all(color: shadowColor, width: 3),
@@ -100,7 +100,7 @@ class _InputState extends State<Input> {
                   ),
                 ),
                 AnimatedContainer(
-                  height: 21.0 * widget.maxLines + 15,
+                  height: 21.0 * widget.maxLines + 13,
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   duration: const Duration(milliseconds: 100),
                   decoration: BoxDecoration(
@@ -117,13 +117,13 @@ class _InputState extends State<Input> {
               ],
             );
           },
-          child: Row(
-            children: [
-              const SizedBox(width: 3),
-              ?widget.prefix,
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(9, 7.5, 0, 7.5),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              spacing: 8,
+              children: [
+                ?widget.prefix,
+                Expanded(
                   child: Stack(
                     children: [
                       if (widget.hintLabel != null)
@@ -139,40 +139,58 @@ class _InputState extends State<Input> {
                             widget.hintLabel!,
                             style: textStyle.copyWith(
                               color: colorScheme.mutedForeground,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
-                      Scrollbar.vertical(
-                        controller: scrollController,
-                        padding: const EdgeInsets.only(right: 4),
-                        child: EditableText(
-                          scrollBehavior: ScrollConfiguration.of(
-                            context,
-                          ).copyWith(scrollbars: false),
-                          scrollController: scrollController,
-                          cursorWidth: 1,
-                          cursorHeight: textStyle.fontSize,
-                          style: textStyle,
-                          focusNode: _focusNode,
-                          controller: _controller,
-                          maxLines: widget.maxLines,
-                          readOnly: widget.readOnly,
-                          rendererIgnoresPointer: true,
-                          obscureText: widget.obscureText,
-                          cursorColor: colorScheme.foreground,
-                          backgroundCursorColor: colorScheme.foreground,
-                        ),
+                      EditableText(
+                        scrollBehavior: const _InputScrollBehavior(),
+                        scrollController: scrollController,
+                        cursorWidth: 1,
+                        cursorHeight: textStyle.fontSize,
+                        style: textStyle,
+                        focusNode: _focusNode,
+                        controller: _controller,
+                        maxLines: widget.maxLines,
+                        readOnly: widget.readOnly,
+                        rendererIgnoresPointer: true,
+                        obscureText: widget.obscureText,
+                        cursorColor: colorScheme.foreground,
+                        backgroundCursorColor: colorScheme.foreground,
                       ),
                     ],
                   ),
                 ),
-              ),
-              ?widget.suffix,
-              const SizedBox(width: 3),
-            ],
+                ?widget.suffix,
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+}
+
+class _InputScrollBehavior extends ScrollBehavior {
+  const _InputScrollBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    switch (details.direction) {
+      case AxisDirection.up:
+      case AxisDirection.down:
+        return Scrollbar.vertical(
+          controller: details.controller,
+          padding: EdgeInsets.zero,
+          child: child,
+        );
+      case AxisDirection.right:
+      case AxisDirection.left:
+        return child;
+    }
   }
 }

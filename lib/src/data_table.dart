@@ -15,7 +15,7 @@ class TableColumn {
   });
 
   final double minWidth;
-  final Text headerTitle;
+  final Widget headerTitle;
   final bool? orderDescending;
   final ValueChanged<bool?>? onSortTap;
   final Widget Function(BuildContext context, int index) cellBuilder;
@@ -24,14 +24,14 @@ class TableColumn {
 class DataTable extends StatefulWidget {
   const DataTable({
     required this.columns,
-    required this.onRowTap,
     required this.itemCount,
     super.key,
+    this.onRowTap,
   });
 
   final int itemCount;
   final List<TableColumn> columns;
-  final void Function(int index) onRowTap;
+  final void Function(int index)? onRowTap;
 
   @override
   State<DataTable> createState() => _DataTableState();
@@ -87,7 +87,7 @@ class _DataTableState extends State<DataTable> {
               controller: horizontalScrollController,
             ),
             columnBuilder: (int index) {
-              if (index == _columnWidths.length - 1) {
+              if (index == widget.columns.length - 1) {
                 return TableSpan(
                   extent: MaxSpanExtent(
                     const RemainingSpanExtent(),
@@ -95,24 +95,23 @@ class _DataTableState extends State<DataTable> {
                   ),
                 );
               }
-              return TableSpan(
-                extent: FixedSpanExtent(_columnWidths[index]),
-              );
+
+              return TableSpan(extent: FixedSpanExtent(_columnWidths[index]));
             },
             rowBuilder: (int index) {
-              if (index == 0) {
+              if (index == 0 || widget.onRowTap == null) {
                 return TableSpan(
-                  extent: const FixedTableSpanExtent(kHeaderHeight),
+                  extent: FixedTableSpanExtent(
+                    index == 0 ? kHeaderHeight : kRowHeight,
+                  ),
                   backgroundDecoration: SpanDecoration(
                     border: SpanBorder(
-                      leading: BorderSide(color: colorScheme.border),
-                      trailing: BorderSide(
-                        color: colorScheme.border,
-                      ),
+                      trailing: BorderSide(color: colorScheme.border),
                     ),
                   ),
                 );
               }
+
               return TableSpan(
                 extent: const FixedTableSpanExtent(kRowHeight),
                 cursor: SystemMouseCursors.click,
@@ -125,12 +124,11 @@ class _DataTableState extends State<DataTable> {
                   TapGestureRecognizer:
                       GestureRecognizerFactoryWithHandlers<
                         TapGestureRecognizer
-                      >(
-                        TapGestureRecognizer.new,
-                        (TapGestureRecognizer instance) {
-                          instance.onTap = () => widget.onRowTap(index - 1);
-                        },
-                      ),
+                      >(TapGestureRecognizer.new, (
+                        TapGestureRecognizer instance,
+                      ) {
+                        instance.onTap = () => widget.onRowTap!(index - 1);
+                      }),
                 },
               );
             },
@@ -230,6 +228,7 @@ class _DataTableState extends State<DataTable> {
                           vicinity.row - 1,
                         ),
                       ),
+                      const SizedBox(width: 16),
                     ],
                   ),
                 ),

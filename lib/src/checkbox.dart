@@ -33,6 +33,7 @@ class Checkbox extends StatelessWidget {
         opacity: disabled ? 0.5 : 1,
         child: Row(
           spacing: 8,
+          mainAxisSize: MainAxisSize.min,
           children: [
             ValueListenableBuilder<bool>(
               valueListenable: controller,

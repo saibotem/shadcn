@@ -9,6 +9,7 @@ class Scrollbar extends StatefulWidget {
     this.padding,
     this.fullScreen = false,
   }) : axis = Axis.horizontal;
+
   const Scrollbar.vertical({
     required this.child,
     required this.controller,
@@ -34,24 +35,14 @@ class _ScrollbarState extends State<Scrollbar> {
   Widget build(BuildContext context) {
     final theme = ShadcnTheme.of(context);
 
-    var child = widget.child;
-
-    if (_scrollbarVisibility && !widget.fullScreen) {
-      child = Padding(
-        padding: widget.axis == Axis.horizontal
-            ? const EdgeInsets.only(bottom: 16)
-            : const EdgeInsets.only(right: 16),
-        child: widget.child,
-      );
-    }
-
     return NotificationListener<ScrollMetricsNotification>(
       onNotification: (notification) {
+        if (notification.depth != 0) return false;
+
         final canScroll = notification.metrics.maxScrollExtent > 0;
         if (canScroll != _scrollbarVisibility) {
           setState(() => _scrollbarVisibility = canScroll);
         }
-
         return false;
       },
       child: RawScrollbar(
@@ -66,7 +57,14 @@ class _ScrollbarState extends State<Scrollbar> {
               vertical: widget.axis == Axis.horizontal ? 8 : 12,
               horizontal: widget.axis == Axis.horizontal ? 12 : 8,
             ),
-        child: child,
+        child: Padding(
+          padding: _scrollbarVisibility && !widget.fullScreen
+              ? (widget.axis == Axis.horizontal
+                    ? const EdgeInsets.only(bottom: 16)
+                    : const EdgeInsets.only(right: 16))
+              : EdgeInsets.zero,
+          child: widget.child,
+        ),
       ),
     );
   }

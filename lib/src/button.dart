@@ -6,85 +6,125 @@ import 'package:shadcn/src/theme.dart';
 enum ButtonType {
   primary,
   secondary,
+  outline,
   ghost,
   destructive
   ;
 
   Color hoverColor(ColorScheme colorScheme) => switch (this) {
-    primary => colorScheme.primary.withValues(alpha: 0.9),
-    secondary => colorScheme.secondary.withValues(alpha: 0.9),
-    ghost => colorScheme.secondary,
-    destructive => colorScheme.destructive.withValues(alpha: 0.9),
+    primary => colorScheme.primary.withValues(
+      alpha: colorScheme.primary.a * .8,
+    ),
+    secondary => colorScheme.secondary.withValues(
+      alpha: colorScheme.secondary.a * .8,
+    ),
+    outline => colorScheme.input.withValues(alpha: colorScheme.input.a * .5),
+    ghost => colorScheme.muted,
+    destructive => colorScheme.destructive.withValues(
+      alpha: colorScheme.destructive.a * .3,
+    ),
   };
 
   Color containerColor(ColorScheme colorScheme) => switch (this) {
     primary => colorScheme.primary,
     secondary => colorScheme.secondary,
+    outline => colorScheme.input.withValues(alpha: colorScheme.input.a * .3),
     ghost => TWColors.transparent,
-    destructive => colorScheme.destructive,
+    destructive => colorScheme.destructive.withValues(
+      alpha: colorScheme.destructive.a * .2,
+    ),
   };
 
   Color foregroundColor(ColorScheme colorScheme) => switch (this) {
     primary => colorScheme.primaryForeground,
     secondary => colorScheme.secondaryForeground,
+    outline => colorScheme.foreground,
     ghost => colorScheme.foreground,
-    destructive => TWColors.white,
+    destructive => colorScheme.destructive,
+  };
+
+  Color borderColor(ColorScheme colorScheme) => switch (this) {
+    primary => TWColors.transparent,
+    secondary => TWColors.transparent,
+    outline => colorScheme.input,
+    ghost => TWColors.transparent,
+    destructive => TWColors.transparent,
   };
 }
 
 class Button extends StatefulWidget {
   const Button({
-    required this.onPressed,
     required this.label,
+    required this.onPressed,
     super.key,
+    this.height = 34,
+    this.centerLabel = false,
     this.iconPrefix,
     this.iconSuffix,
-    this.height = 32,
     this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.primary;
 
   const Button.secondary({
-    required this.onPressed,
     required this.label,
+    required this.onPressed,
     super.key,
+    this.height = 34,
+    this.centerLabel = false,
     this.iconPrefix,
     this.iconSuffix,
-    this.height = 32,
     this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.secondary;
 
-  const Button.ghost({
-    required this.onPressed,
+  const Button.outline({
     required this.label,
+    required this.onPressed,
     super.key,
+    this.height = 34,
+    this.centerLabel = false,
     this.iconPrefix,
     this.iconSuffix,
-    this.height = 32,
+    this.selected = false,
+    this.disabled = false,
+  }) : buttonType = ButtonType.outline;
+
+  const Button.ghost({
+    required this.label,
+    required this.onPressed,
+    super.key,
+    this.height = 34,
+    this.centerLabel = false,
+    this.iconPrefix,
+    this.iconSuffix,
     this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.ghost;
 
   const Button.destructive({
-    required this.onPressed,
     required this.label,
+    required this.onPressed,
     super.key,
+    this.height = 34,
+    this.centerLabel = false,
     this.iconPrefix,
     this.iconSuffix,
-    this.height = 32,
     this.selected = false,
     this.disabled = false,
   }) : buttonType = ButtonType.destructive;
 
-  final Widget label;
-  final bool selected;
-  final bool disabled;
   final double height;
+  final Widget label;
+  final bool centerLabel;
+  final VoidCallback onPressed;
+
   final Widget? iconPrefix;
   final Widget? iconSuffix;
+
+  final bool selected;
+  final bool disabled;
+
   final ButtonType buttonType;
-  final VoidCallback onPressed;
 
   @override
   State<Button> createState() => _ButtonState();
@@ -120,6 +160,32 @@ class _ButtonState extends State<Button> {
     final hoverColor = widget.buttonType.hoverColor(colorScheme);
     final containerColor = widget.buttonType.containerColor(colorScheme);
     final foregroundColor = widget.buttonType.foregroundColor(colorScheme);
+    final borderColor = widget.buttonType.borderColor(colorScheme);
+
+    final labelWidget = DefaultTextStyle(
+      style: theme.textTheme.labelMedium
+          .withColor(foregroundColor)
+          .merge(DefaultTextStyle.of(context).style),
+      child: widget.label,
+    );
+
+    Widget contentGroup = Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        if (widget.iconPrefix != null) widget.iconPrefix!,
+        Flexible(child: labelWidget),
+      ],
+    );
+
+    if (widget.centerLabel) {
+      contentGroup = Expanded(child: Center(child: contentGroup));
+    } else {
+      contentGroup = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: contentGroup,
+      );
+    }
 
     return MouseRegion(
       cursor: widget.disabled
@@ -137,6 +203,7 @@ class _ButtonState extends State<Button> {
             decoration: BoxDecoration(
               color: _isHovering ? hoverColor : containerColor,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: borderColor),
             ),
             child: IconTheme.merge(
               data: IconThemeData(
@@ -144,23 +211,9 @@ class _ButtonState extends State<Button> {
                 size: widget.height / 2,
               ),
               child: Row(
-                spacing: 8,
+                spacing: 4,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    spacing: 8,
-                    children: [
-                      ?widget.iconPrefix,
-                      DefaultTextStyle(
-                        style: theme.textTheme.labelMedium
-                            .withColor(foregroundColor)
-                            .merge(DefaultTextStyle.of(context).style),
-                        child: widget.label,
-                      ),
-                    ],
-                  ),
-                  ?widget.iconSuffix,
-                ],
+                children: [contentGroup, ?widget.iconSuffix],
               ),
             ),
           ),

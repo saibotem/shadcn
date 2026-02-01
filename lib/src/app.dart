@@ -23,7 +23,6 @@ class ShadcnApp extends StatefulWidget {
     this.builder,
     this.title,
     this.onGenerateTitle,
-    this.color,
     this.theme,
     this.darkTheme,
     this.themeMode = ThemeMode.system,
@@ -60,7 +59,6 @@ class ShadcnApp extends StatefulWidget {
     this.builder,
     this.title,
     this.onGenerateTitle,
-    this.color,
     this.theme,
     this.darkTheme,
     this.themeMode = ThemeMode.system,
@@ -102,7 +100,6 @@ class ShadcnApp extends StatefulWidget {
   final TransitionBuilder? builder;
   final String? title;
   final GenerateAppTitle? onGenerateTitle;
-  final Color? color;
   final ThemeData? theme;
   final ThemeData? darkTheme;
   final ThemeMode themeMode;

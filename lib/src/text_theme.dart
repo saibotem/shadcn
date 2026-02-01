@@ -14,6 +14,7 @@ class TextThemeData {
         leadingDistribution: TextLeadingDistribution.even,
         fontFamily: 'Inter',
         package: 'shadcn',
+        overflow: TextOverflow.ellipsis,
       ),
       title: TextStyle(
         color: color,
@@ -24,6 +25,7 @@ class TextThemeData {
         leadingDistribution: TextLeadingDistribution.even,
         fontFamily: 'Inter',
         package: 'shadcn',
+        overflow: TextOverflow.ellipsis,
       ),
       labelMedium: TextStyle(
         color: color,
@@ -34,6 +36,7 @@ class TextThemeData {
         leadingDistribution: TextLeadingDistribution.even,
         fontFamily: 'Inter',
         package: 'shadcn',
+        overflow: TextOverflow.ellipsis,
       ),
       labelSmall: TextStyle(
         color: color,
@@ -44,6 +47,7 @@ class TextThemeData {
         fontVariations: const [FontVariation('wght', 400)],
         fontFamily: 'Inter',
         package: 'shadcn',
+        overflow: TextOverflow.ellipsis,
       ),
       body: TextStyle(
         color: color,
@@ -54,6 +58,7 @@ class TextThemeData {
         fontVariations: const [FontVariation('wght', 300)],
         fontFamily: 'Inter',
         package: 'shadcn',
+        overflow: TextOverflow.ellipsis,
       ),
       bodySmall: TextStyle(
         color: color,
@@ -64,6 +69,7 @@ class TextThemeData {
         fontVariations: const [FontVariation('wght', 300)],
         fontFamily: 'Inter',
         package: 'shadcn',
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

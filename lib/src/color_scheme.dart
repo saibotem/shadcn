@@ -6,7 +6,8 @@ enum BaseTone {
   neutral(TWColors.neutral),
   stone(TWColors.stone),
   zinc(TWColors.zinc),
-  gray(TWColors.gray);
+  gray(TWColors.gray)
+  ;
 
   const BaseTone(this.palette);
 
@@ -24,7 +25,8 @@ enum AccentColor {
   indigo(TWColors.indigo),
   lime(TWColors.lime),
   orange(TWColors.orange),
-  pink(TWColors.pink);
+  pink(TWColors.pink)
+  ;
 
   const AccentColor(this.palette);
 
@@ -101,12 +103,8 @@ class ColorScheme {
       accent = isDark ? palette.shade800 : palette.shade100,
       accentForeground = isDark ? palette.shade50 : palette.shade900,
       destructive = isDark ? TWColors.red.shade400 : TWColors.red.shade600,
-      border = isDark
-          ? TWColors.white.withValues(alpha: 0.1)
-          : palette.shade200,
-      input = isDark
-          ? TWColors.white.withValues(alpha: 0.05)
-          : palette.shade400,
+      border = isDark ? TWColors.white.withValues(alpha: .1) : palette.shade200,
+      input = isDark ? TWColors.white.withValues(alpha: .15) : TWColors.white,
       ring = isDark ? palette.shade500 : palette.shade950,
       chart1 = isDark ? TWColors.blue.shade700 : TWColors.orange.shade600,
       chart2 = isDark ? TWColors.emerald.shade500 : TWColors.teal.shade600,

@@ -24,14 +24,15 @@ class Separator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ShadcnTheme.of(context);
+    final padding = height >= 1 ? height - 1 : 0;
 
     return Container(
       width: axis == Axis.horizontal ? null : thickness,
       height: axis == Axis.horizontal ? thickness : null,
       color: theme.colorScheme.border,
       margin: EdgeInsets.symmetric(
-        vertical: axis == Axis.horizontal ? height / 2 : indent,
-        horizontal: axis == Axis.horizontal ? indent : height / 2,
+        vertical: axis == Axis.horizontal ? padding / 2 : indent,
+        horizontal: axis == Axis.horizontal ? indent : padding / 2,
       ),
     );
   }
